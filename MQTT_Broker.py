@@ -49,13 +49,13 @@ def on_message(client: mqtt_client):
     # client.subscribe(topic)
     client.on_message = on_message
 
-def publish(client):
+def publish(client, msg):
     msg_count = 0
     while True:
         time.sleep(1)
         
         # Return the number of car being generated
-        msg = f"messages:{traffic_condition}"
+        msg = f"messages:{msg}"
         
         # Publis the message
         result = client.publish(topic, msg)
@@ -83,7 +83,8 @@ def traffic_condition(msg):
             traffic_condition = True
             print("Allow Vertical to pass")
             # TODO Change return to publish
-            return traffic_condition
+            publish(client, traffic_condition)
+            # return traffic_condition
         
     elif traffic_status[1] in traffic_2:
         if traffic_status[2] is True or traffic_status[0] >= 7:
@@ -91,7 +92,7 @@ def traffic_condition(msg):
             traffic_condition = False
             print("Allow horizontal to pass")
             # TODO Change return to publish
-            return traffic_condition
+            publish(client, traffic_condition)
         
     else:
         print("No changes is made")

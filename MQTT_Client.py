@@ -2,6 +2,7 @@ import random
 import time
 
 from paho.mqtt import client as mqtt_client
+import IOTtrafficlights
 
 
 broker = 'broker.emqx.io'
@@ -75,6 +76,7 @@ def publish(client):
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        
     
         
 
