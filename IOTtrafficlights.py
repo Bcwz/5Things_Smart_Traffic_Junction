@@ -1,22 +1,30 @@
 from sense_hat import SenseHat
 from time import sleep
 
-red = (255,0,0)
-green = (0,255,0)
-orange = (255,165,0)
 sense = SenseHat()
 
-def green:
-    sense.clear((green))
-    sleep(1)
-    sense.clear()
-    
-def red:
-    sense.clear((red))
+def red(): 
+    red = (255,0,0)
+    sense.clear(red)
     sleep(1)
     sense.clear()
 
-def orange:
-    sense.clear((orange))
+def green(): 
+    green = (0,255,0)
+    sense.clear(green)
     sleep(1)
     sense.clear()
+
+def orange(): 
+    orange = (255,165,0)
+    sense.clear(orange)
+    sleep(1)
+    sense.clear()
+   
+    
+    
+
+if __name__ == '__main__':
+    orange()
+    red()
+    green()

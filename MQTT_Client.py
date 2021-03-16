@@ -19,7 +19,7 @@ port = 1883
 topic = "/python/5Things"
 # generate client ID with pub prefix randomly
 # To change the client_id to where the traffic is
-client_id = "traffic_south"
+client_id = "south"
 # username = 'emqx'
 # password = 'public'
 
@@ -57,10 +57,10 @@ def connect_mqtt():
 def publish(client):
     msg_count = 0
     while True:
-        time.sleep(1)
+        time.sleep(10)
         
         # Return the number of car being generated
-        msg = f"messages:{[car_count(), client_id, emergency_car()]"
+        msg = f"messages:[{car_count()}, {client_id}, {emergency_car()}]"
         
         # Publis the message
         result = client.publish(topic, msg)
