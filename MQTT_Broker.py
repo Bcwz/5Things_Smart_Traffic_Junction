@@ -1,15 +1,29 @@
 import random
 
 from paho.mqtt import client as mqtt_client
+from ast import literal_eval
+import time
 
 
 broker = 'broker.emqx.io'
 port = 1883
-topic = "/python/5Things"
+
+# TODO Chnage the traffic light
+topic = "/python/5Things/traffic2"
 # generate client ID with pub prefix randomly
-client_id = f'python-mqtt-{random.randint(0, 100)}'
+# client_id = f'python-mqtt-{random.randint(0, 100)}'
+client_id = "traffic_controller"
 # username = 'emqx'
 # password = 'public'
+
+# index number 1 is the vertical side
+# index number 2 is the horizontal side
+traffic_1 = ["north", "south"]
+traffic_2 = ["east", "west"]
+
+# True : Set the vertical to be green
+# False : Set the vertical to be red
+traffic_condition = True
 
 
 def connect_mqtt() -> mqtt_client:
@@ -25,18 +39,88 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
-
-def subscribe(client: mqtt_client):
+# http://www.steves-internet-guide.com/into-mqtt-python-client/
+def on_message(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        traffic_condition(msg.payload.decode())
+        
 
-    client.subscribe(topic)
+    # client.subscribe(topic)
     client.on_message = on_message
 
+def publish(client):
+    msg_count = 0
+    while True:
+        time.sleep(1)
+        
+        # Return the number of car being generated
+        msg = f"messages:{traffic_condition}"
+        
+        # Publis the message
+        result = client.publish(topic, msg)
+        # result: [0, 1]
+        status = result[0]
+        if status == 0:
+            print(f"Send `{msg}` to topic `{topic}`")
+        else:
+            print(f"Failed to send message to topic {topic}")
+        msg_count += 1
+        
+
+def traffic_condition(msg):
+    message = msg.split(":")
+    # Get the second array as it contain our array of things
+    # array[0] is the length of car
+    # array[1] is the direction of the car : clientid
+    # array[2] is the emergency vehicle
+    # Convert string to array
+    traffic_status = literal_eval(message[1])
+    
+    if traffic_status[1] in traffic_1:
+        if traffic_status[2] is True or traffic_status[0] >= 7:
+            # Set the green light of traffic for vertical
+            traffic_condition = True
+            print("Allow Vertical to pass")
+            # TODO Change return to publish
+            return traffic_condition
+        
+    elif traffic_status[1] in traffic_2:
+        if traffic_status[2] is True or traffic_status[0] >= 7:
+             # Set the green light of traffic for horizontal
+            traffic_condition = False
+            print("Allow horizontal to pass")
+            # TODO Change return to publish
+            return traffic_condition
+        
+    else:
+        print("No changes is made")
+        return traffic_condition
+    # Priority to check if the eergency vehicle is enable
+   
+      
+        
+    # If the length of the traffic is more than 7
+    # If the traffic condition is true, remain true
+    # No abrupt changes to the traffic
+    # elif traffic_status[0] >= 7:
+    #     # If it is the north or south side of the traffic
+    #     if traffic_status[1] in traffic_1 :
+    #         traffic_condition = True
+    #         return True
+    #     if traffic_status[1] in traffic_2 :
+    #         traffic_condition = False
+    #         return False
+        
+    
+    
+    
+        return message
+    
 
 def run():
     client = connect_mqtt()
-    subscribe(client)
+    on_message(client)
     client.loop_forever()
 
 
