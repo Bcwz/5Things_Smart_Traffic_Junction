@@ -2,7 +2,7 @@ import random
 import time
 
 from paho.mqtt import client as mqtt_client
-import IOTtrafficlights
+import IOTtrafficlights as traffic_light
 
 
 broker = 'broker.emqx.io'
@@ -76,6 +76,17 @@ def publish(client):
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        # Split the message
+        message = msg.split(":")
+        # Check the condition of the traffic
+        traffic_status = literal_eval(message[1])
+        # If the traffic condition is true
+        # Vertical traffic light should be green
+        if traffic_status:
+            traffic_light.green()
+            print("Vertical")
+        else:
+            print("Horizontal")
         
     
         
