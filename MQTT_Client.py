@@ -3,6 +3,7 @@ import time
 
 from paho.mqtt import client as mqtt_client
 import IOTtrafficlights as traffic_light
+from ast import literal_eval
 
 
 broker = 'broker.emqx.io'
@@ -63,31 +64,32 @@ def connect_mqtt():
 
 def publish(client):
     msg_count = 0
-    while PUBLISH_FLAG:
-        time.sleep(5)
-        
-        # Return the number of car being generated
-        msg = f"messages:[{car_count()}, '{client_id}', {emergency_car()}]"
-        
-        # Publis the message
-        result = client.publish(topic, msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{msg}` to topic `{topic}`")
-        else:
-            print(f"Failed to send message to topic {topic}")
-        msg_count += 1
+    
+    time.sleep(5)
+    
+    # Return the number of car being generated
+    msg = f"messages:[{car_count()}, '{client_id}', {True}]"
+    
+    # Publis the message
+    result = client.publish(topic, msg)
+    # result: (0, 1)
+    status = result[0]
+    if status == 0:
+        print(f"Send `{msg}` to topic `{topic}`")
+    else:
+        print(f"Failed to send message to topic {topic}")
+    msg_count += 1
+
         
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        PUBLISH_FLAG = False
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        message = msg.payload.decode()
         # Split the message
-        message = msg.split(":")
+        message_check_condition = message.split(":")
         # Check the condition of the traffic
-        traffic_status = literal_eval(message[1])
+        traffic_status = literal_eval(message_check_condition[1])
         # If the traffic condition is true
         # Vertical traffic light should be green
         if traffic_status:
@@ -96,21 +98,22 @@ def subscribe(client: mqtt_client):
         else:
             traffic_light.red()
             print("Horizontal")
+        # Repeat the whole process again
+        publish(client)
         
-    
-        
-
     client.subscribe(topic_recieved)
+    
     client.on_message = on_message
-
-
-def run():
-    client = connect_mqtt()
-    client.loop_start()
     publish(client)
-    print("here")
-    client.subscribe(topic_recieved, 2)
+    
+def on_log(client, userdata, level, buf):
+    print("log: ",buf)
+    
+client = connect_mqtt()
+client.on_log=on_log
+subscribe(client)
+client.loop_forever()
 
 
-if __name__ == '__main__':
-    run()
+#if __name__ == '__main__':
+#    run()

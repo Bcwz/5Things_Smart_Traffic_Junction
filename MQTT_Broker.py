@@ -41,7 +41,7 @@ def connect_mqtt() -> mqtt_client:
     return client
 
 # http://www.steves-internet-guide.com/into-mqtt-python-client/
-def on_message(client: mqtt_client):
+def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
         traffic_condition(msg.payload.decode())
@@ -103,7 +103,7 @@ def traffic_condition(msg):
 # Set this as global so that the client can be read by
 # other function
 client = connect_mqtt()
-on_message(client)
+subscribe(client)
 client.loop_forever()
 
 
