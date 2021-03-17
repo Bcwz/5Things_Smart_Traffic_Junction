@@ -10,9 +10,11 @@ port = 1883
 
 # TODO Chnage the traffic light
 topic = "/python/5Things/traffic2"
+topic_received = "/python/5Things"
 # generate client ID with pub prefix randomly
 # client_id = f'python-mqtt-{random.randint(0, 100)}'
 client_id = "traffic_controller"
+
 # username = 'emqx'
 # password = 'public'
 
@@ -23,8 +25,7 @@ traffic_2 = ["east", "west"]
 
 # True : Set the vertical to be green
 # False : Set the vertical to be red
-traffic_condition = True
-
+traffic_open = True
 
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
@@ -46,26 +47,26 @@ def on_message(client: mqtt_client):
         traffic_condition(msg.payload.decode())
         
 
-    # client.subscribe(topic)
+    client.subscribe(topic_received)
     client.on_message = on_message
 
-def publish(client, msg):
+def publish(client, traffic_open):
+    
     msg_count = 0
-    while True:
-        time.sleep(1)
-        
-        # Return the number of car being generated
-        msg = f"messages:{msg}"
-        
-        # Publis the message
-        result = client.publish(topic, msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{msg}` to topic `{topic}`")
-        else:
-            print(f"Failed to send message to topic {topic}")
-        msg_count += 1
+    
+    # Return the number of car being generated
+    msg = f"messages:{traffic_open}"
+    
+    # Publis the message
+    result = client.publish(topic, msg)
+    print(result)
+    # result: [0, 1]
+    status = result[0]
+    if status == 0:
+        print(f"Send `{msg}` to topic `{topic}`")
+    else:
+        print(f"Failed to send message to topic {topic}")
+    msg_count += 1
         
 
 def traffic_condition(msg):
@@ -97,32 +98,19 @@ def traffic_condition(msg):
     else:
         print("No changes is made")
         return traffic_condition
-    # Priority to check if the eergency vehicle is enable
-   
-      
-        
-    # If the length of the traffic is more than 7
-    # If the traffic condition is true, remain true
-    # No abrupt changes to the traffic
-    # elif traffic_status[0] >= 7:
-    #     # If it is the north or south side of the traffic
-    #     if traffic_status[1] in traffic_1 :
-    #         traffic_condition = True
-    #         return True
-    #     if traffic_status[1] in traffic_2 :
-    #         traffic_condition = False
-    #         return False
-        
-    
-    
-    
-        return message
-    
 
-def run():
-    client = connect_mqtt()
-    on_message(client)
-    client.loop_forever()
+
+# Set this as global so that the client can be read by
+# other function
+client = connect_mqtt()
+on_message(client)
+client.loop_forever()
+
+
+# def run():
+#     client = connect_mqtt()
+#     on_message(client)
+#     client.loop_forever()
 
 
 if __name__ == '__main__':

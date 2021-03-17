@@ -17,24 +17,31 @@ port = 1883
 # traffic_2 is the horizontal road
 
 topic = "/python/5Things"
+topic_recieved = "/python/5Things/traffic2"
 # generate client ID with pub prefix randomly
 # To change the client_id to where the traffic is
 client_id = "south"
 # username = 'emqx'
 # password = 'public'
 
+PUBLISH_FLAG = True
+
 
 # TODO Read the count of the car
 def emergency_car():
     # If a car reach the length of 7, inform the traffic to change the light at the controller
-    while true:
+    while True:
         is_emergency = random.randint(0, 1)
-        return is_emergency
+        if is_emergency:
+            return True
+        else:
+            return False
+
 
 # TODO get the type of car
 def car_count():
     # If a car reach the length of 7, inform the traffic to change the light at the controller
-    while true:
+    while True:
         count = random.randint(0, 10)
         return count
 
@@ -56,11 +63,11 @@ def connect_mqtt():
 
 def publish(client):
     msg_count = 0
-    while True:
-        time.sleep(10)
+    while PUBLISH_FLAG:
+        time.sleep(5)
         
         # Return the number of car being generated
-        msg = f"messages:[{car_count()}, {client_id}, {emergency_car()}]"
+        msg = f"messages:[{car_count()}, '{client_id}', {emergency_car()}]"
         
         # Publis the message
         result = client.publish(topic, msg)
@@ -75,6 +82,7 @@ def publish(client):
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
+        PUBLISH_FLAG = False
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
         # Split the message
         message = msg.split(":")
@@ -86,12 +94,13 @@ def subscribe(client: mqtt_client):
             traffic_light.green()
             print("Vertical")
         else:
+            traffic_light.red()
             print("Horizontal")
         
     
         
 
-    client.subscribe(topic)
+    client.subscribe(topic_recieved)
     client.on_message = on_message
 
 
@@ -99,7 +108,8 @@ def run():
     client = connect_mqtt()
     client.loop_start()
     publish(client)
-    client.subscribe("/python/5Things", 2)
+    print("here")
+    client.subscribe(topic_recieved, 2)
 
 
 if __name__ == '__main__':
