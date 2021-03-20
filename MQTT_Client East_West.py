@@ -1,5 +1,6 @@
 import random
 import time
+from time import sleep
 
 from paho.mqtt import client as mqtt_client
 import IOTtrafficlights as traffic_light
@@ -17,15 +18,16 @@ port = 1883
 # traffic_1 is the vertical road
 # traffic_2 is the horizontal road
 
-topic = "/python/5Things"
-topic_recieved = "/python/5Things/traffic2"
+topic = [("/python/5Things/traffic2", 2), ("/python/5Things",2),  ("/python/5Things/enable",2)]
 # generate client ID with pub prefix randomly
 # To change the client_id to where the traffic is
-client_id = "south"
+client_id = "traffic_east_west"
 # username = 'emqx'
 # password = 'public'
 
 PUBLISH_FLAG = True
+ENABLE = False
+
 
 
 # TODO Read the count of the car
@@ -68,14 +70,14 @@ def publish(client):
     time.sleep(5)
     
     # Return the number of car being generated
-    msg = f"messages:[{car_count()}, '{client_id}', {True}]"
+    msg = f"'car_count':[{car_count()}, '{client_id}', {True}]"
     
     # Publis the message
-    result = client.publish(topic, msg)
+    result = client.publish(topic[1][0], msg, 2)
     # result: (0, 1)
     status = result[0]
     if status == 0:
-        print(f"Send `{msg}` to topic `{topic}`")
+        print(f"Send `{msg}` to topic `{topic[1][0]}`")
     else:
         print(f"Failed to send message to topic {topic}")
     msg_count += 1
@@ -90,25 +92,59 @@ def subscribe(client: mqtt_client):
         message_check_condition = message.split(":")
         # Check the condition of the traffic
         traffic_status = literal_eval(message_check_condition[1])
-        # If the traffic condition is true
-        # Vertical traffic light should be green
-        if traffic_status:
-            traffic_light.green()
-            print("Vertical")
+        if msg.topic == topic[2][0]:
+            if traffic_status:
+                print("Smart Traffic Enable")
+                enable_traffic(True)
+            else:
+                print("Smart Traffic Not Enable")
+                enable_traffic(False)
+            sleep(3)
+            publish(client)
         else:
-            traffic_light.red()
-            print("Horizontal")
-        # Repeat the whole process again
-        publish(client)
+            if ENABLE:
+                # If the traffic condition is true
+                # Vertical traffic light should be green
+                if traffic_status is False:
+                    change_traffic_state()
+                    print("Vertical")
+                else:
+                    traffic_light.red()
+                    print("Horizontal")
+                # Repeat the whole process again
+                publish(client)
+                #print("message topic=",msg.topic)
+                #print("message qos=",msg.qos)
+                #print("message retain flag=",msg.retain)
+            else:
+                print("Enable False")
+                sleep(3)
+                publish(client)
+              
         
-    client.subscribe(topic_recieved)
-    
+    client.subscribe([topic[0], topic[2]])
     client.on_message = on_message
     publish(client)
     
+def change_traffic_state():
+    traffic_light.red()
+    sleep(3)
+    traffic_light.orange()
+    sleep(3)
+    traffic_light.green()   
+
 def on_log(client, userdata, level, buf):
-    print("log: ",buf)
-    
+    print("message:" + str(buf))
+
+def enable_traffic(status):
+    if status:
+        ENABLE = True
+    else:
+        ENABLE = False
+
+
+enable = enable_traffic(False)
+
 client = connect_mqtt()
 client.on_log=on_log
 subscribe(client)
@@ -116,4 +152,4 @@ client.loop_forever()
 
 
 #if __name__ == '__main__':
-#    run()
+#    ENABLE = False

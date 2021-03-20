@@ -9,10 +9,7 @@ broker = 'broker.emqx.io'
 port = 1883
 
 # TODO Chnage the traffic light
-topic = "/python/5Things/traffic2"
-topic_received = "/python/5Things"
-# generate client ID with pub prefix randomly
-# client_id = f'python-mqtt-{random.randint(0, 100)}'
+topic = [("/python/5Things/traffic2", 2), ( "/python/5Things",2)]
 client_id = "traffic_controller"
 
 # username = 'emqx'
@@ -23,11 +20,14 @@ client_id = "traffic_controller"
 traffic_1 = ["north", "south"]
 traffic_2 = ["east", "west"]
 
+# Number of traffic is being connected
+connected_devices = []
+
 # True : Set the vertical to be green
 # False : Set the vertical to be red
 traffic_open = True
 
-def connect_mqtt() -> mqtt_client:
+def connect_mqtt():
     def on_connect(client, userdata, flags, rc):
         if rc == 0:
             print("Connected to MQTT Broker!")
@@ -44,10 +44,17 @@ def connect_mqtt() -> mqtt_client:
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        traffic_condition(msg.payload.decode())
         
-
-    client.subscribe(topic_received)
+        # if len(connected_devices) == 4 and all(devices in (traffic_1 + traffic_2) for devices in connected_devices):
+        #     traffic_condition(msg.payload.decode())
+        # else:
+        #    print("sub")
+  
+        # print("message topic=",msg.topic)
+        # print("message qos=",msg.qos)
+        # print("message retain flag=",msg.retain)
+        
+    client.subscribe(topic[1])
     client.on_message = on_message
 
 def publish(client, traffic_open):
@@ -58,12 +65,12 @@ def publish(client, traffic_open):
     msg = f"messages:{traffic_open}"
     
     # Publis the message
-    result = client.publish(topic, msg)
+    result = client.publish(topic[0][0], msg, 2)
     print(result)
     # result: [0, 1]
     status = result[0]
     if status == 0:
-        print(f"Send `{msg}` to topic `{topic}`")
+        print(f"Send `{msg}` to topic `{topic[0][0]}`")
     else:
         print(f"Failed to send message to topic {topic}")
     msg_count += 1
@@ -71,6 +78,7 @@ def publish(client, traffic_open):
 
 def traffic_condition(msg):
     message = msg.split(":")
+    print(message)
     # Get the second array as it contain our array of things
     # array[0] is the length of car
     # array[1] is the direction of the car : clientid
@@ -98,6 +106,11 @@ def traffic_condition(msg):
     else:
         print("No changes is made")
         return traffic_condition
+    
+def on_log(client, userdata, level, buf):
+    print("message:" + str(buf))
+    print("userdata:" + str(userdata))
+    print("level:" + str(level))
 
 
 # Set this as global so that the client can be read by

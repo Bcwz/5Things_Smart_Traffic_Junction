@@ -19,11 +19,14 @@ class TestStringMethods(unittest.TestCase):
     # Test if the horizontal side have emergency vehicle
     # @unittest.skip
     def test_check_emergency_vehicle(self):
-        result = con.traffic_condition(scenario_4)
+        msg = con.string_to_json(scenario_1)
+        
+        result = con.traffic_condition(msg)
+        
         self.assertTrue(result)
         
     # Test if the vertical side have emergency vehicle
-    # @unittest.skip
+    @unittest.skip
     def test_check_emergency_vehicle(self):
         result = con.traffic_condition(scenario_3)
         self.assertTrue(result)
@@ -31,27 +34,37 @@ class TestStringMethods(unittest.TestCase):
     # Test if the car length is more than 7
     # If it is vertical it should be true
     # else horizontal is set to true
-    # @unittest.skip
+    @unittest.skip
     def test_length_vertical(self):
         # Testing if it is the vertical
         result = con.traffic_condition(scenario_1)
         self.assertTrue(result)
-    
-        
-    # Test if the car length is more than 7
-    # If it is vertical it should be true
-    # else horizontal is set to true
-    # @unittest.skip
-    def test_length_horizontal(self):
-        # Testing if it is the vertical
-        result = con.traffic_condition(scenario_2)
-        self.assertFalse(result)
 
+    @unittest.skip
+    def test_json_to_string(self):
+        # Testing if it is the vertical
+        result = con.string_to_json(scenario_1)
+        self.assertEqual(result["traffic_green"], "False")
+
+    @unittest.skip
+    def test_string_to_json(self):
+        # Testing if it is the vertical
+        result = con.json_to_string(seenario_1_json)
+        self.assertTrue(bool(result))
+    
+    
+    def test_added_message(self):
+        result = con.string_to_json(sub)
+        
+        
 if __name__ == '__main__':
     
     # When one side of the traffic have the length of 7
-    scenario_1 = f"messages:[{7}, 'north', {False}]"
-   
+    sub = f'{{ "direction":"north", "time_left":7 }}'
+    
+    pub = f'{{ "direction":"north", "enable": true }}'
+
+    seenario_1_json = {"enable" : True, "traffic_green": False}
     # When one side of the traffic have the length of 7
     scenario_2 = f"messages:[{7}, 'east', {False}]"
     
