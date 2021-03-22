@@ -15,18 +15,19 @@ config = {
         }
     },
     'sys_interval': 10,
-    'auth': {
-        'plugins' : ['auth.anonymous'], #List of plugins to activate for authentication among all registered plugins
-        'allow-anonymous': False,
-        'password-file': 'password.txt'
-    }, 
+    # 'auth': {
+    #     'plugins' : ['auth.anonymous'], #List of plugins to activate for authentication among all registered plugins
+    #     'allow-anonymous': False,
+    #     'password-file': 'password.txt'
+    # }, 
     'topic-check': {
         'enabled': True,
-        'plugins': ['topic_taboo','topic_acl'],
-        'acl':{
-            'traffic_controller': ['5Things/#'],
-            'traffic_north': ['5Things/#'],
-        }
+        'plugins': ['topic_taboo']
+        # 'plugins': ['topic_taboo','topic_acl'],
+        # 'acl':{
+        #     'traffic_controller': ['5Things/#'],
+        #     'traffic_north': ['5Things/#'],
+        # }
     }, 
 }
 
