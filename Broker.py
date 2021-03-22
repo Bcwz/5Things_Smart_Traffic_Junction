@@ -22,9 +22,9 @@ config = {
 
 broker = Broker(config)
 
-@asyncio.coroutine
-def startBroker():
-    yield from broker.start()
+
+async def startBroker():
+    await broker.start()
 
 
 
