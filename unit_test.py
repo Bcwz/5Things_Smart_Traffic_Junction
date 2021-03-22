@@ -1,5 +1,5 @@
 import unittest
-import MQTT_Broker as con
+import MQTT_PI as con
 
 class TestStringMethods(unittest.TestCase):
 
@@ -43,24 +43,29 @@ class TestStringMethods(unittest.TestCase):
     @unittest.skip
     def test_json_to_string(self):
         # Testing if it is the vertical
-        result = con.string_to_json(scenario_1)
-        self.assertEqual(result["traffic_green"], "False")
+        result = con.string_to_json(sub)
+        self.assertTrue(bool(result))
 
-    @unittest.skip
+    # @unittest.skip
     def test_string_to_json(self):
         # Testing if it is the vertical
-        result = con.json_to_string(seenario_1_json)
+        result = con.json_to_string(sub)
         self.assertTrue(bool(result))
     
-    
-    def test_added_message(self):
-        result = con.string_to_json(sub)
+    # @unittest.skip
+    def test_traffic_condition(self):
+        message = con.string_to_json(sub)
+        result = con.traffic_condition(message)
+
+        # decode = con.traffic_condition(result)
+
+        self.assertEqual(result["time_extended"], 30)
         
         
 if __name__ == '__main__':
     
     # When one side of the traffic have the length of 7
-    sub = f'{{ "direction":"north", "time_left":7 }}'
+    sub = f'{{ "enabled": true, "direction":"north", "time_left":7 }}'
     
     pub = f'{{ "direction":"north", "enable": true }}'
 

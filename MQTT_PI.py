@@ -11,6 +11,9 @@ topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2)]
 # # generate client ID with pub prefix randomly
 client_id = "traffic_controller"
 
+# The fixed timing for time extension
+TIME_EXTENSION = 30
+
 # Connection to the broker
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
@@ -26,15 +29,45 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
+def publish(client, message):
+    msg_count = 0
+    # Return the number of car being generated
+    msg = f"{message}"
+    
+    # Publis the message
+    result = client.publish(topic[1][0], msg, 2)
+    print(result)
+
+    if status == 0:
+        print(f"Send `{msg}` to topic `{topic}`")
+    else:
+        print(f"Failed to send message to topic {topic}")
+    msg_count += 1
+
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
-        m_decode=str(msg.payload.decode("utf-8","ignore"))    
-        print(f"Received `{m_decode}` from `{msg.topic}` topic")
+        m_decode=str(msg.payload.decode("utf-8","ignore"))
+        m_in=string_to_json(m_decode) #decode json data
+
+        print(f"Received `{m_in}` from `{msg.topic}` topic")
         
     client.subscribe(topic[0])
     client.on_message = on_message
 
-client = connect_mqtt()
-subscribe(client)
-client.loop_forever()
+def traffic_condition(traffic):
+    # If the traffic light timer still green
+    if traffic['enabled']:
+        message = {"direction" : traffic["direction"], "time_extended": TIME_EXTENSION}
+    
+    return message
+
+def string_to_json(m_decode):
+    return json.loads(m_decode)
+
+def json_to_string(m_decode):
+    return json.dumps(m_decode)
+    
+# client = connect_mqtt()
+# subscribe(client)
+# client.loop_forever()
