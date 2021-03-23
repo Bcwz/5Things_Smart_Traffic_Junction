@@ -2,7 +2,7 @@
 from paho.mqtt import client as mqtt_client
 import json
 
-broker = '192.168.1.85'
+broker = '172.30.138.65'
 port = 1883
 
 # # TODO Chnage the traffic light
@@ -48,9 +48,9 @@ def publish(client, message):
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         m_decode=str(msg.payload.decode("utf-8","ignore"))
-        m_in=string_to_json(m_decode) #decode json data
+        # m_in=string_to_json(m_decode) #decode json data
 
-        print(f"Received `{m_in}` from `{msg.topic}` topic")
+        print(f"Received `{m_decode}` from `{msg.topic}` topic")
         
     client.subscribe(topic[0])
     client.on_message = on_message
@@ -68,6 +68,6 @@ def string_to_json(m_decode):
 def json_to_string(m_decode):
     return json.dumps(m_decode)
     
-# client = connect_mqtt()
-# subscribe(client)
-# client.loop_forever()
+client = connect_mqtt()
+subscribe(client)
+client.loop_forever()
