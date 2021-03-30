@@ -3,7 +3,19 @@ import time
 import random
 from threading import Timer
 
+# publisher
+from paho.mqtt import client as mqtt_client
+import json
 
+broker = '192.168.3.174'
+port = 1883
+
+# # TODO Chnage the traffic light
+topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2)]
+
+# # generate client ID with pub prefix randomly
+client_id = "north"
+traffic_lookout = ["north", "south"]
 
 # Timer
 # Pass in the timer number
@@ -31,47 +43,39 @@ class RoadCar:
     def setRoadEmegency(self, emergency):
         self.emergency = emergency
 
+
+class SmartTraffic:
+    def __init__(self, enabled, time_extended):
+        self.enabled = enabled
+        self.time_extended =time_extended
         
-    
-        
-# def red_light_time():
-#     colour = "RED"
-#     print(colour)
-#     CURRENT_COLOUR = colour
-#     for i in range(5, 0, -1):
-#         time.sleep(1)
-#         TIME_LEFT = i
-#         print(f'red + {i}')  # this i to pass to check time left
-        
-        
-# # green light time
-# def green_light_time():
-#     colour = "Green"
-#     print(colour)
-#     CURRENT_COLOUR = colour
-#     for i in range(5, 0, -1):
-#         time.sleep(1)
-#         TIME_LEFT = i
-#         print(f'green + {i}')  # this i to pass to check time left
+    def setSmartTraffic(self, enabled):
+        self.enabled = enabled
+            
+    def setTimeExtended(self, emergency):
+        self.time_extended = time_extended
+
+
+
 
 def car_count(roadStatus):
     # If a car reach the length of 7, inform the traffic to change the light at the controller
     # while True:
-    count = random.randint(0, 7)
+    count = random.randint(0, 10)
+    print(count)
     roadStatus.setRoadCount(count)
     
 def emergency_bool(roadStatus):
     # If a car reach the length of 7, inform the traffic to change the light at the controller
     # while True:
-    count = random.randint(0,2)
+    count = random.randint(0,10)
+    print(count)
     if count == 0:
         roadStatus.setRoadEmegency(True)
 
-def check_traffic_condition(roadStatus):
+def check_traffic_condition(status):
     # while True:
-    if roadStatus.numOfCar == 7 or roadStatus.emergency is True:
-        print(roadStatus.numOfCar)
-        print(roadStatus.emergency)
+    if status["direction"] in traffic_lookout:
         timer.cancel()
  
         
@@ -85,7 +89,6 @@ def transit_red_to_green():
     print("Traffic is now Green")
 
 
-
 def normal_traffic(trafficStatus):
     # If this is traffic turn to green
     if trafficStatus.status is True:
@@ -97,27 +100,58 @@ def normal_traffic(trafficStatus):
     else:
         transit_green_to_red()
         trafficStatus.change(True)
+        
+
+# The fixed timing for time extension
+# TIME_EXTENSION = 30
+
+# Connection to the broker
+def connect_mqtt() -> mqtt_client:
+    def on_connect(client, userdata, flags, rc):
+        # If connection is connected
+        if rc == 0:
+            print("Connected to MQTT Broker!")
+        else:
+            print("Failed to connect, return code %d\n", rc)
+
+    client = mqtt_client.Client()
+    # client.username_pw_set(client_id, "123")
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
 
 
-    # end the time when the script finish
-    # finish = time.perf_counter()
 
-    # print(f"time taken to finish thread: {finish-start}")
+def subscribe(client: mqtt_client):
+    def on_message(client, userdata, msg):
+        m_decode=str(msg.payload.decode("utf-8","ignore"))
+        # print(f"Received `{m_decode}` from `{msg.topic}` topic")
+        
+        m_in=string_to_json(m_decode) #decode json data
+        check_traffic_condition(m_in) 
+      
+            
+        
+    client.subscribe(topic[1])
+    client.on_message = on_message
+    
+    
+def string_to_json(m_decode):
+    return json.loads(m_decode)
+
         
 if __name__ == "__main__":
     try:
         tStatus = TrafficStatus(True)
+        sTraffic = SmartTraffic(False, 0)
         print("Red")
         timer = RepeatTimer(3,normal_traffic,args=[tStatus])
         timer.start()
         
-        while True:
-            roadStatus = RoadCar()
-
-            car_count(roadStatus)
-            emergency_bool(roadStatus)
-            check_traffic_condition(roadStatus) 
-            time.sleep(3)
+        
+        client = connect_mqtt()
+        subscribe(client)
+        client.loop_forever()
         
     except KeyboardInterrupt:
         timer.cancel()
