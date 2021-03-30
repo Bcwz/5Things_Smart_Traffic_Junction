@@ -18,27 +18,16 @@ port = 1883
 # traffic_1 is the vertical road
 # traffic_2 is the horizontal road
 
-<<<<<<< Updated upstream
-topic = "/python/5Things"
-topic_recieved = "/python/5Things/traffic2"
-# generate client ID with pub prefix randomly
-# To change the client_id to where the traffic is
-client_id = "south"
-=======
 topic = [("/python/5Things/traffic2", 2), ("/python/5Things",2),  ("/python/5Things/enable",2)]
 # generate client ID with pub prefix randomly
 # To change the client_id to where the traffic is
 client_id = "east"
->>>>>>> Stashed changes
 # username = 'emqx'
 # password = 'public'
 
 PUBLISH_FLAG = True
-<<<<<<< Updated upstream
-=======
 ENABLE = False
 
->>>>>>> Stashed changes
 
 
 # TODO Read the count of the car
@@ -77,23 +66,6 @@ def connect_mqtt():
 
 def publish(client):
     msg_count = 0
-<<<<<<< Updated upstream
-    while PUBLISH_FLAG:
-        time.sleep(5)
-        
-        # Return the number of car being generated
-        msg = f"messages:[{car_count()}, '{client_id}', {emergency_car()}]"
-        
-        # Publis the message
-        result = client.publish(topic, msg)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{msg}` to topic `{topic}`")
-        else:
-            print(f"Failed to send message to topic {topic}")
-        msg_count += 1
-=======
     
     time.sleep(5)
     
@@ -110,7 +82,6 @@ def publish(client):
         print(f"Failed to send message to topic {topic}")
     msg_count += 1
 
->>>>>>> Stashed changes
         
 
 def subscribe(client: mqtt_client):
@@ -132,15 +103,6 @@ def subscribe(client: mqtt_client):
             sleep(3)
             publish(client)
         else:
-<<<<<<< Updated upstream
-            traffic_light.red()
-            print("Horizontal")
-        
-    
-        
-
-    client.subscribe(topic_recieved)
-=======
             if ENABLE is True:
                 # If the traffic condition is true
                 # Vertical traffic light should be green
@@ -162,13 +124,8 @@ def subscribe(client: mqtt_client):
               
         
     client.subscribe([topic[0], topic[2]])
->>>>>>> Stashed changes
     client.on_message = on_message
     publish(client)
-<<<<<<< Updated upstream
-    print("here")
-    client.subscribe(topic_recieved, 2)
-=======
     
 def change_traffic_state():
     traffic_light.red()
@@ -185,7 +142,6 @@ client = connect_mqtt()
 client.on_log=on_log
 subscribe(client)
 client.loop_forever()
->>>>>>> Stashed changes
 
 
 #if __name__ == '__main__':
