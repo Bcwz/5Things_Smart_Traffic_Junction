@@ -6,13 +6,15 @@ broker = '172.30.138.214'
 port = 1883
 
 # # TODO Chnage the traffic light
-topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2)]
+topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
 # # generate client ID with pub prefix randomly
 client_id = "traffic_controller"
 
 # The fixed timing for time extension
 TIME_EXTENSION = 10
+
+
 
 # Connection to the broker
 def connect_mqtt() -> mqtt_client:
@@ -29,30 +31,37 @@ def connect_mqtt() -> mqtt_client:
     client.connect(broker, port)
     return client
 
-def publish(client, message):
+def publish(client, message, topic):
     msg_count = 0
     # Return the number of car being generated
     msg = f'{message}'
     
     
     # Publis the message
-    result = client.publish(topic[1][0], msg, 2)
+    result = client.publish(topic, msg, 2)
  
     
-    print(f"Send `{msg}` to topic `{topic[1][0]}`")
+    print(f"Send `{msg}` to topic `{topic}`")
    
 
 def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         m_decode=str(msg.payload.decode("utf-8","ignore"))
-        m_in=string_to_json(m_decode) #decode json data
+        payload = m_decode 
 
         print(f"Received `{m_decode}` from `{msg.topic}` topic")
-    
-        payload = traffic_condition(m_in)
-        publish(client, payload)
         
-    client.subscribe(topic[0])
+        if msg.topic == topic[0][0]:
+            decode_payload = string_to_json(m_decode) #decode json data
+            payload = traffic_condition(decode_payload)
+            setTopic = topic[1][0]
+        else:
+            setTopic = topic[3][0]
+            
+            
+        publish(client, payload, setTopic)
+        
+    client.subscribe([topic[0],topic[2]])
     client.on_message = on_message
 
 def traffic_condition(traffic):
