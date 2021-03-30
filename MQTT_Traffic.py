@@ -13,14 +13,19 @@ import datetime
 broker = '172.30.138.214'
 port = 1883
 
+
+FLAG_SMART_TRAFFIC = 0
+ENABLE_SMART_TRAFFIC = 1
+DISABLE_SMART_TRAFFIC = 2
+
 # # TODO Chnage the traffic light
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
 # # generate client ID with pub prefix randomly
-# client_id = "east"
-client_id = "north"
-# traffic_lookout = ["west", "east"]
-traffic_lookout = ["north", "south"]
+client_id = "east"
+# client_id = "north"
+traffic_lookout = ["west", "east"]
+# traffic_lookout = ["north", "south"]
 
 now = datetime.datetime.now()
 # dd/mm/YY H:M:S
@@ -77,14 +82,15 @@ class EnableTraffic:
         self.enabled = enabled
             
 
-sTraffic = SmartTraffic(False, 0)
+sTraffic = SmartTraffic(FLAG_SMART_TRAFFIC, 0)
 traffic_enabled = EnableTraffic()
 
 
 def check_traffic_condition(status):
     # while True:
-    # if status["direction"] in traffic_lookout:
-    sTraffic.setSmartTraffic(True)
+    sTraffic.setSmartTraffic(DISABLE_SMART_TRAFFIC)
+    if status["direction"] in traffic_lookout:
+        sTraffic.setSmartTraffic(ENABLE_SMART_TRAFFIC)
     sTraffic.setTimeExtended(status["time_extended"] + sTraffic.time_extended)
  
         
@@ -103,15 +109,30 @@ def transit_red_to_green():
     # print("Traffic is now Green")
 
 def reset():
-    sTraffic.setSmartTraffic(False)
+    sTraffic.setSmartTraffic(FLAG_SMART_TRAFFIC)
     sTraffic.setTimeExtended(0)
 
 def normal_traffic(trafficStatus): 
    
-    print("Start =", dt_string)	
-    if sTraffic.enabled is True:
-        sTraffic.setSmartTraffic(False)
-        run_smart_traffic()
+    print("Start =", dt_string)
+
+    if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
+  
+        if sTraffic.enabled == ENABLE_SMART_TRAFFIC and trafficStatus.status is True:
+            extend_smart_traffic()
+            
+        elif sTraffic.enabled == DISABLE_SMART_TRAFFIC and trafficStatus.status is False:
+            extend_smart_traffic()
+        
+        elif sTraffic.enabled == ENABLE_SMART_TRAFFIC and trafficStatus.status is False:
+            traffic_light.blue()
+            trafficStatus.change(False)
+        
+        elif sTraffic.enabled == DISABLE_SMART_TRAFFIC and trafficStatus.status is True:
+            traffic_light.blue()
+            trafficStatus.change(True)
+        
+        reset()
 
     # If this is traffic turn to green
     if trafficStatus.status is True:
@@ -144,21 +165,21 @@ def normal_traffic(trafficStatus):
     
     print("End =", dt_string)	
 
-def run_smart_traffic():
+def extend_smart_traffic():
     traffic_light.blue()
             # print("Smart Traffic Enabled")
     time.sleep(sTraffic.time_extended)
     
     if sTraffic.enabled is True:
-        sTraffic.setSmartTraffic(False)
+        sTraffic.setSmartTraffic(FLAG_SMART_TRAFFIC)
         run_smart_traffic()
-        
-    reset()
-            # print("Smart Traffic Disabled")
+    
+    else:
+        reset()
+    
+    
 
-# The fixed timing for time extension
-# TIME_EXTENSION = 30
-
+ 
 # Connection to the broker
 def connect_mqtt() -> mqtt_client:
     def on_connect(client, userdata, flags, rc):
