@@ -2,11 +2,13 @@ from threading import Thread
 import time
 import random
 from threading import Timer
-# import IOT_Color as traffic_light
+import IOT_Color as traffic_light
+from datetime import date
 
 # publisher
 from paho.mqtt import client as mqtt_client
 import json
+import datetime
 
 broker = '172.30.138.214'
 port = 1883
@@ -15,10 +17,14 @@ port = 1883
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
 # # generate client ID with pub prefix randomly
+# client_id = "east"
 client_id = "north"
-traffic_lookout = ["north", "south"]
 # traffic_lookout = ["west", "east"]
-        
+traffic_lookout = ["north", "south"]
+
+now = datetime.datetime.now()
+# dd/mm/YY H:M:S
+dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
 # Timer
 # Pass in the timer number
@@ -77,22 +83,22 @@ traffic_enabled = EnableTraffic()
 
 def check_traffic_condition(status):
     # while True:
-    if status["direction"] in traffic_lookout:
-        sTraffic.setSmartTraffic(True)
-        sTraffic.setTimeExtended(status["time_extended"])
+    # if status["direction"] in traffic_lookout:
+    sTraffic.setSmartTraffic(True)
+    sTraffic.setTimeExtended(status["time_extended"] + sTraffic.time_extended)
  
         
 def transit_green_to_red():
     traffic_light.orange()
     # print("Amber")
-    
     time.sleep(3)
-    
     traffic_light.red()
+    time.sleep(3)
     # print("Red")
 
 
 def transit_red_to_green():
+    time.sleep(6)
     traffic_light.green()
     # print("Traffic is now Green")
 
@@ -100,26 +106,55 @@ def reset():
     sTraffic.setSmartTraffic(False)
     sTraffic.setTimeExtended(0)
 
-def normal_traffic(trafficStatus):
+def normal_traffic(trafficStatus): 
+   
+    print("Start =", dt_string)	
+    if sTraffic.enabled is True:
+        sTraffic.setSmartTraffic(False)
+        run_smart_traffic()
 
     # If this is traffic turn to green
     if trafficStatus.status is True:
         transit_red_to_green()
-        
-        if sTraffic.enabled is True:
-            print("Smart Traffic Enabled")
-            time.sleep(sTraffic.time_extended)
-            reset()
-            print("Smart Traffic Disabled")
-            
-        # Traffic prepare to change to red after the next timing
-        print(sTraffic.enabled)
         trafficStatus.change(False)
-        transit_red_to_green()
-    else:
-        trafficStatus.change(True)
-        transit_green_to_red()
         
+        # if sTraffic.enabled is True:
+            # run_smart_traffic()
+        #     print(sTraffic.enabled)
+        #     # print("Smart Traffic Enabled")
+        #     time.sleep(sTraffic.time_extended)
+        #     reset()
+        #     # print("Smart Traffic Disabled")
+
+        
+    else:
+        transit_green_to_red()
+        trafficStatus.change(True)
+        
+        # if sTraffic.enabled is False:
+        #     run_smart_traffic()
+        #     print(sTraffic.enabled)
+        #     # print("Smart Traffic Enabled")
+        #     time.sleep(sTraffic.time_extended)
+        #     reset()
+        #     # print("Smart Traffic Disabled")
+        
+
+        
+    
+    print("End =", dt_string)	
+
+def run_smart_traffic():
+    traffic_light.blue()
+            # print("Smart Traffic Enabled")
+    time.sleep(sTraffic.time_extended)
+    
+    if sTraffic.enabled is True:
+        sTraffic.setSmartTraffic(False)
+        run_smart_traffic()
+        
+    reset()
+            # print("Smart Traffic Disabled")
 
 # The fixed timing for time extension
 # TIME_EXTENSION = 30
@@ -173,11 +208,11 @@ def string_to_json(m_decode):
 def start_traffic(status):
     if status["direction"] in traffic_lookout:
         start_time(True)
-        traffic_light.green()
+        traffic_light.red()
         # print("Red")
     else:
         start_time(False)
-        traffic_light.red()
+        traffic_light.green()
         # print("Green")
         
     traffic_enabled.setTraffic(True)
