@@ -5,7 +5,7 @@ client_id = "traffic_camera"
 client = mqtt.Client(client_id)
 
 # Set IP address
-client_ip = "192.168.3.174"
+client_ip = "172.30.138.214"
 
 client.connect(client_ip, 1883)
 # client.username_pw_set(client_id)

@@ -2,7 +2,7 @@
 from paho.mqtt import client as mqtt_client
 import json
 
-broker = '192.168.3.174'
+broker = '172.30.138.214'
 port = 1883
 
 # # TODO Chnage the traffic light
@@ -12,7 +12,7 @@ topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2)]
 client_id = "traffic_controller"
 
 # The fixed timing for time extension
-TIME_EXTENSION = 30
+TIME_EXTENSION = 10
 
 # Connection to the broker
 def connect_mqtt() -> mqtt_client:
@@ -32,7 +32,8 @@ def connect_mqtt() -> mqtt_client:
 def publish(client, message):
     msg_count = 0
     # Return the number of car being generated
-    msg = f"{message}"
+    msg = f'{message}'
+    
     
     # Publis the message
     result = client.publish(topic[1][0], msg, 2)
@@ -57,7 +58,7 @@ def subscribe(client: mqtt_client):
 def traffic_condition(traffic):
     # If the traffic light timer still green
     if traffic['enabled']:
-        message = {"direction" : traffic["direction"], "time_extended": TIME_EXTENSION}
+        message = f'{{"direction" : "{traffic["direction"]}", "time_extended": {TIME_EXTENSION}}}'
     
     return message
 
