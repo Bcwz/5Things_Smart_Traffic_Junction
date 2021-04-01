@@ -1,16 +1,19 @@
 # publisher
 import paho.mqtt.client as mqtt
 
+topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
+
 client_id = "traffic_camera"
 client = mqtt.Client(client_id)
-
+client.will_set(topic[2][0] , "Im dead", 1 , False)
 # Set IP address
-client_ip = "172.30.138.214"
+# client_ip = "172.30.138.214"
+broker = '192.168.1.85'
 
-client.connect(client_ip, 1883)
+client.connect(broker, 1883)
 # client.username_pw_set(client_id)
 
-topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
+
 
 while True:
     result = input("Please select from: \n [1] Traffic North Reach 7 car \n [2] Traffic North Emergency \n [3] Traffic West Reach 7 car \n [4] Traffic West Emergency \n [5] Start West Traffic \n [6] Start North Traffic \n [7] Stop Traffic \n Choose your input: ")

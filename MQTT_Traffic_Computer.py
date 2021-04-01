@@ -2,7 +2,7 @@ from threading import Thread
 import time
 import random
 from threading import Timer
-import IOT_Color as traffic_light
+# import IOT_Color as traffic_light
 from datetime import date
 
 # publisher
@@ -23,10 +23,10 @@ DISABLE_DIRECTION_TRAFFIC = 2
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
 # Set your client id
-client_id = "east"
-# client_id = "north"
-traffic_lookout = ["west", "east"]
-# traffic_lookout = ["north", "south"]
+# client_id = "east"
+client_id = "north"
+# traffic_lookout = ["west", "east"]
+traffic_lookout = ["north", "south"]
 
 
 
@@ -96,26 +96,24 @@ def check_traffic_condition(status):
         sTraffic.setSmartTraffic(ENABLE_DIRECTION_TRAFFIC)
     sTraffic.setTimeExtended(status["time_extended"] + sTraffic.time_extended)
  
-        
+# Reset the traffic light
 def reset():
     sTraffic.setSmartTraffic(FLAG_SMART_TRAFFIC)
     sTraffic.setTimeExtended(0)
 
+# Normal traffic
 def normal_traffic(trafficStatus): 
-   
     now = datetime.datetime.now()
-    # dd/mm/YY H:M:S
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
-    print("Start =", dt_string) 
+    print("Start =", dt_string)
+
     if traffic_enabled.timer.finished:
-        if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
-            # Traffic is currently Green and want to transit to red
+         if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
+    
             if sTraffic.enabled == ENABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
                 extend_smart_traffic()
                 reset()
-
-            # Traffic is currently Red and want to transit to green
             elif sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is True:
                 extend_smart_traffic()
                 reset()
@@ -123,37 +121,20 @@ def normal_traffic(trafficStatus):
 
     # If this is traffic turn to green
     if trafficStatus.status is True:
-
         transit_red_to_green()
-
-        if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
-            if sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
-                extend_smart_traffic()
-                traffic_enabled.timer.cancel()
-                reset()
-
         trafficStatus.change(False)
-
+        
     else:
         transit_green_to_red()
+        trafficStatus.change(True)        
 
-        if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
-
-            if sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
-                extend_smart_traffic()
-                reset()
- 
-        
-        trafficStatus.change(True)
- 
-    
-        
-    
+    finish = datetime.datetime.now()
+    dt_string = finish.strftime("%d/%m/%Y %H:%M:%S")
     print("End =", dt_string)	
 
 def extend_smart_traffic():
-    traffic_light.blue()
-            # print("Smart Traffic Enabled")
+    # traffic_light.blue()
+    print("Blue Light")
     time.sleep(sTraffic.time_extended)
     
     if sTraffic.enabled is True:
@@ -162,32 +143,33 @@ def extend_smart_traffic():
     
     else:
         reset()
+        print("End of smart traffic")
     
 
 def transit_green_to_red():
-    traffic_light.orange()
-    # print("Amber")
+    # traffic_light.orange()
+    print("Amber")
     time.sleep(3)
-    traffic_light.red()
+    # traffic_light.red()
     time.sleep(3)
-    # print("Red")
+    print("Red")
 
 def transit_red_to_green():
     time.sleep(6)
-    traffic_light.green()
-    # print("Traffic is now Green")
+    # traffic_light.green()
+    print("Traffic is now Green")
 
 
 
 def start_traffic(status):
     if status["direction"] in traffic_lookout:
         start_time(True)
-        traffic_light.red()
-        # print("Red")
+        # traffic_light.red()
+        print("Red")
     else:
         start_time(False)
-        traffic_light.green()
-        # print("Green")
+        # traffic_light.green()
+        print("Green")
         
     traffic_enabled.setTraffic(True)
 
@@ -206,6 +188,7 @@ def connect_mqtt() -> mqtt_client:
             print("Failed to connect, return code %d\n", rc)
 
     client = mqtt_client.Client()
+    client.will_set(topic[2][0] , f'{client_id} is dead', 1 , False)
     # client.username_pw_set(client_id, "123")
     client.on_connect = on_connect
     client.connect(broker, port)
@@ -223,7 +206,7 @@ def subscribe(client: mqtt_client):
                 start_traffic(m_in)
                 print("Traffic Start")
             else:
-                traffic_light.clearall()
+                # traffic_light.clearall()
                 traffic_enabled.setTraffic(False)
                 traffic_enabled.timer.cancel()
                 print("Traffic Stop")
@@ -246,15 +229,19 @@ def start_time(enabled):
     traffic_enabled.setTimer(timer)
     traffic_enabled.timer.start()
     # timer.start
-        
+
 
         
 if __name__ == "__main__":
     try:        
         client = connect_mqtt()
         subscribe(client)
+
+        # Send last will 
+        # Topic, Message, QOS, Retain
+
         client.loop_forever()
         
     except KeyboardInterrupt:
         # traffic_light.clearall()
-        timer.cancel()
+        traffic_enabled.timer.cancel()
