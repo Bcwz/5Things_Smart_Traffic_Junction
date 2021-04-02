@@ -1,9 +1,11 @@
 # publisher
 from paho.mqtt import client as mqtt_client
 import json
+from datetime import date
+import datetime
 
-# broker = '172.30.138.214'
-broker = '192.168.1.85'
+
+broker = '172.20.10.9'
 port = 1883
 
 # # TODO Chnage the traffic light
@@ -49,8 +51,11 @@ def subscribe(client: mqtt_client):
     def on_message(client, userdata, msg):
         m_decode=str(msg.payload.decode("utf-8","ignore"))
         payload = m_decode 
+        now = datetime.datetime.now()
+        # dd/mm/YY H:M:S
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
-        print(f"Received `{m_decode}` from `{msg.topic}` topic")
+        print(f"[{now}] Received `{m_decode}` from `{msg.topic}` topic")
         
         if msg.topic == topic[0][0]:
             decode_payload = string_to_json(m_decode) #decode json data

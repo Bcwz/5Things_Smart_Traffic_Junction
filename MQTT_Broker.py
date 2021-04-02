@@ -12,7 +12,7 @@ config = {
     'listeners': {
         'default': {
             'type': 'tcp',
-            'bind': '192.168.1.85:1883'    # 0.0.0.0:1883
+            'bind': '172.20.10.9:1883'    # 0.0.0.0:1883
         }
     },
     'sys_interval': 10,
@@ -35,6 +35,8 @@ config = {
 
 broker = Broker(config)
 
+# broker = '172.20.10.4'
+CLIENT_IP = 'mqtt://172.20.10.9:1883/'
 
 async def startBroker():
     await broker.start()
@@ -43,7 +45,7 @@ async def startBroker():
 
 async def brokerGetMessage():
     C = MQTTClient()
-    await C.connect('mqtt://192.168.1.85:1883/')
+    await C.connect(CLIENT_IP)
     await C.subscribe([topic[2]])
 
     logger.info('Subscribed!')

@@ -5,12 +5,12 @@ topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Thing
 
 client_id = "traffic_camera"
 client = mqtt.Client(client_id)
-client.will_set(topic[2][0] , "Im dead", 1 , False)
 # Set IP address
 # client_ip = "172.30.138.214"
-broker = '192.168.1.85'
+broker = '172.20.10.9'
+port = 1883
 
-client.connect(broker, 1883)
+client.connect(broker, port)
 # client.username_pw_set(client_id)
 
 

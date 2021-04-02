@@ -10,10 +10,8 @@ from paho.mqtt import client as mqtt_client
 import json
 import datetime
 
-# broker = '172.30.138.214'
-broker = '192.168.1.85'
+broker = '172.20.10.9'
 port = 1883
-
 
 FLAG_SMART_TRAFFIC = 0
 ENABLE_DIRECTION_TRAFFIC = 1
@@ -120,30 +118,16 @@ def normal_traffic(trafficStatus):
                 extend_smart_traffic()
                 reset()
 
+    # print(f'{sTraffic.enabled} ,'{}' ')
 
     # If this is traffic turn to green
     if trafficStatus.status is True:
 
         transit_red_to_green()
-
-        if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
-            if sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
-                extend_smart_traffic()
-                traffic_enabled.timer.cancel()
-                reset()
-
         trafficStatus.change(False)
 
     else:
         transit_green_to_red()
-
-        if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
-
-            if sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
-                extend_smart_traffic()
-                reset()
- 
-        
         trafficStatus.change(True)
  
     
@@ -158,7 +142,7 @@ def extend_smart_traffic():
     
     if sTraffic.enabled is True:
         sTraffic.setSmartTraffic(FLAG_SMART_TRAFFIC)
-        run_smart_traffic()
+        # run_smart_traffic()
     
     else:
         reset()
@@ -206,6 +190,7 @@ def connect_mqtt() -> mqtt_client:
             print("Failed to connect, return code %d\n", rc)
 
     client = mqtt_client.Client()
+    client.will_set(topic[2][0] , f'{client_id} IS DISCONNECTED', 1 , False)
     # client.username_pw_set(client_id, "123")
     client.on_connect = on_connect
     client.connect(broker, port)
@@ -225,6 +210,7 @@ def subscribe(client: mqtt_client):
             else:
                 traffic_light.clearall()
                 traffic_enabled.setTraffic(False)
+                traffic_enabled.timer.cancel()
                 traffic_enabled.timer.cancel()
                 print("Traffic Stop")
                 
