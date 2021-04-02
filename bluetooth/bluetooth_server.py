@@ -10,6 +10,7 @@ def data_received(data):
     # Convert the payload time to a datetime object
     payload_time = datetime.strptime(data[0:12], '%H:%M:%S.%f')
     latency=current_time-payload_time
+    print("Data from client: ", data,"\nLatency: ",latency)
     server.send("Data received. Latency: {}".format(latency))
 
 def client_connected():
