@@ -7,11 +7,12 @@ import struct
 import bluetooth._bluetooth as bluez
 import bluetooth
 
-BLUETOOTH_MAC = "A0:56:F3:8F:37:0E"
+# BLUETOOTH_MAC = "B8:27:EB:93:54:44"
+# BLUETOOTH_MAC = "b8:27:eb:68:4f:1b"
 #BLUETOOTH_MAC = "F0:5C:77:DE:F6:08"
 #BLUETOOTH_MAC ="B8:27:EB:97:B0:E4"
 #BLUETOOTH_MAC = "F8:10:93:A2:34:99"
-
+BLUETOOTH_MAC = "B8:27:EB:43:A5:86"
 
 def printpacket(pkt):
     for c in pkt:
