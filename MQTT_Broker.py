@@ -5,7 +5,7 @@ from hbmqtt.client import MQTTClient, ClientException
 
 
 logger = logging.getLogger(__name__)
-broker_ip = '192.168.1.85'
+broker_ip = '172.20.10.10'
 
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 

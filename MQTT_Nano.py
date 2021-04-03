@@ -4,8 +4,7 @@ import json
 from datetime import date
 import datetime
 
-
-broker = '192.168.1.85'
+broker = '172.20.10.10'
 port = 1883
 
 # # TODO Chnage the traffic light

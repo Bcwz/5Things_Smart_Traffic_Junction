@@ -11,7 +11,7 @@ import json
 import datetime
 
 # broker = '172.30.138.214'
-broker = '172.20.1.1'
+broker = '172.20.10.4'
 port = 1883
 
 
