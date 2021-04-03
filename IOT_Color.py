@@ -27,7 +27,14 @@ def blue():
     # sleep(1)
     # sense.clear()
 
-# purple = (160, 32, 240)
+def purple(): 
+    purple = (160, 32, 240)
+    sense.clear(purple)
+    # sleep(1)
+    # sense.clear()
+
+
+
    
 def clearall():
     sense.clear()
@@ -35,6 +42,9 @@ def clearall():
 
 if __name__ == '__main__':
     orange()
+    sleep(1)
     red()
+    sleep(1)
     green()
+    sleep(1)
     clearall()

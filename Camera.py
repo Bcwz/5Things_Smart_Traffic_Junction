@@ -7,7 +7,7 @@ client_id = "traffic_camera"
 client = mqtt.Client(client_id)
 # Set IP address
 # client_ip = "172.30.138.214"
-broker = '172.20.10.9'
+broker = '192.168.1.85'
 port = 1883
 
 client.connect(broker, port)

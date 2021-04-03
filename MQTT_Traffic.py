@@ -10,7 +10,7 @@ from paho.mqtt import client as mqtt_client
 import json
 import datetime
 
-broker = '172.20.10.9'
+broker = '192.168.1.85'
 port = 1883
 
 FLAG_SMART_TRAFFIC = 0
@@ -83,23 +83,39 @@ class EnableTraffic:
 # Declare the traffic
 sTraffic = SmartTraffic(FLAG_SMART_TRAFFIC, 0)
 traffic_enabled = EnableTraffic()
+trafficStatus = TrafficStatus(False)
 
 
 # Check the current traffic condition from topic
 # ("5Things/set_traffic", 2)
 def check_traffic_condition(status):
     # while True:
-    sTraffic.setSmartTraffic(DISABLE_DIRECTION_TRAFFIC)
+
     if status["direction"] in traffic_lookout:
-        sTraffic.setSmartTraffic(ENABLE_DIRECTION_TRAFFIC)
+        if trafficStatus.status is True:
+            sTraffic.setSmartTraffic(ENABLE_DIRECTION_TRAFFIC)
+        else:
+            traffic_enabled.timer.cancel()
+            normal_traffic()
+            start_time(trafficStatus.status)
+
+    else:
+        if trafficStatus.status is False:
+            sTraffic.setSmartTraffic(DISABLE_DIRECTION_TRAFFIC)
+        else:
+            traffic_enabled.timer.cancel()
+            normal_traffic()
+            start_time(trafficStatus.status)
+            
+    
     sTraffic.setTimeExtended(status["time_extended"] + sTraffic.time_extended)
- 
+            
         
 def reset():
     sTraffic.setSmartTraffic(FLAG_SMART_TRAFFIC)
     sTraffic.setTimeExtended(0)
 
-def normal_traffic(trafficStatus): 
+def normal_traffic(): 
    
     now = datetime.datetime.now()
     # dd/mm/YY H:M:S
@@ -109,12 +125,14 @@ def normal_traffic(trafficStatus):
     if traffic_enabled.timer.finished:
         if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
             # Traffic is currently Green and want to transit to red
-            if sTraffic.enabled == ENABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
+            if sTraffic.enabled == ENABLE_DIRECTION_TRAFFIC and trafficStatus.status is True:
+                traffic_light.purple()
                 extend_smart_traffic()
                 reset()
 
             # Traffic is currently Red and want to transit to green
-            elif sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is True:
+            elif sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
+                traffic_light.blue()
                 extend_smart_traffic()
                 reset()
 
@@ -122,7 +140,6 @@ def normal_traffic(trafficStatus):
 
     # If this is traffic turn to green
     if trafficStatus.status is True:
-
         transit_red_to_green()
         trafficStatus.change(False)
 
@@ -136,7 +153,6 @@ def normal_traffic(trafficStatus):
     print("End =", dt_string)	
 
 def extend_smart_traffic():
-    traffic_light.blue()
             # print("Smart Traffic Enabled")
     time.sleep(sTraffic.time_extended)
     
@@ -227,8 +243,8 @@ def subscribe(client: mqtt_client):
 
          
 def start_time(enabled):
-    tStatus = TrafficStatus(enabled)
-    timer = RepeatTimer(10,normal_traffic,args=[tStatus])
+    trafficStatus.change(enabled)
+    timer = RepeatTimer(10,normal_traffic,args=[])
     traffic_enabled.setTimer(timer)
     traffic_enabled.timer.start()
     # timer.start
