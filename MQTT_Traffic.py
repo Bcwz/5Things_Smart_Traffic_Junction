@@ -21,10 +21,10 @@ DISABLE_DIRECTION_TRAFFIC = 2
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
 # Set your client id
-client_id = "east"
-# client_id = "north"
-traffic_lookout = ["west", "east"]
-# traffic_lookout = ["north", "south"]
+# client_id = "east"
+client_id = "north"
+# traffic_lookout = ["west", "east"]
+traffic_lookout = ["north", "south"]
 
 
 
@@ -89,8 +89,8 @@ trafficStatus = TrafficStatus(False)
 # Check the current traffic condition from topic
 # ("5Things/set_traffic", 2)
 def check_traffic_condition(status):
-    # while True:
 
+    printTransition("Traffic Detected Changed!")
     if status["direction"] in traffic_lookout:
         if trafficStatus.status is True:
             sTraffic.setSmartTraffic(ENABLE_DIRECTION_TRAFFIC)
@@ -115,24 +115,27 @@ def reset():
     sTraffic.setSmartTraffic(FLAG_SMART_TRAFFIC)
     sTraffic.setTimeExtended(0)
 
-def normal_traffic(): 
-   
+def printTransition(msg):
     now = datetime.datetime.now()
     # dd/mm/YY H:M:S
     dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    print(f"[{dt_string}] {msg}" ) 
 
-    print("Start =", dt_string) 
+def normal_traffic(): 
+   
+    printTransition("Being Transition")
+
     if traffic_enabled.timer.finished:
         if sTraffic.enabled is not FLAG_SMART_TRAFFIC:
             # Traffic is currently Green and want to transit to red
             if sTraffic.enabled == ENABLE_DIRECTION_TRAFFIC and trafficStatus.status is True:
-                traffic_light.purple()
+                traffic_light.blue()
                 extend_smart_traffic()
                 reset()
 
             # Traffic is currently Red and want to transit to green
             elif sTraffic.enabled == DISABLE_DIRECTION_TRAFFIC and trafficStatus.status is False:
-                traffic_light.blue()
+                traffic_light.purple()
                 extend_smart_traffic()
                 reset()
 
@@ -140,20 +143,20 @@ def normal_traffic():
 
     # If this is traffic turn to green
     if trafficStatus.status is True:
-        transit_red_to_green()
+        transit_green_to_red()
+        printTransition("Changing to Red")
         trafficStatus.change(False)
 
     else:
-        transit_green_to_red()
+        transit_red_to_green()
+        printTransition("Changing to Green")
         trafficStatus.change(True)
- 
-    
-        
-    
-    print("End =", dt_string)	
+       
+
+    printTransition("End Transition")
 
 def extend_smart_traffic():
-            # print("Smart Traffic Enabled")
+    printTransition("Smart Traffic Time Extended True")
     time.sleep(sTraffic.time_extended)
     
     if sTraffic.enabled is True:
@@ -182,11 +185,11 @@ def transit_red_to_green():
 def start_traffic(status):
     if status["direction"] in traffic_lookout:
         start_time(True)
-        traffic_light.red()
+        traffic_light.green()
         # print("Red")
     else:
         start_time(False)
-        traffic_light.green()
+        traffic_light.red()
         # print("Green")
         
     traffic_enabled.setTraffic(True)
@@ -223,6 +226,7 @@ def subscribe(client: mqtt_client):
             if m_in["enabled"]:
                 start_traffic(m_in)
                 print("Traffic Start")
+                print(f"{client_id} Traffic")
             else:
                 traffic_light.clearall()
                 traffic_enabled.setTraffic(False)
