@@ -5,6 +5,7 @@ from hbmqtt.client import MQTTClient, ClientException
 
 
 logger = logging.getLogger(__name__)
+broker_ip = '192.168.1.85'
 
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
@@ -12,7 +13,7 @@ config = {
     'listeners': {
         'default': {
             'type': 'tcp',
-            'bind': '192.168.1.85:1883'    # 0.0.0.0:1883
+            'bind': f'{broker_ip}:1883'    # 0.0.0.0:1883
         }
     },
     'sys_interval': 10,
@@ -35,8 +36,8 @@ config = {
 
 broker = Broker(config)
 
-# broker = '172.20.10.4'
-CLIENT_IP = 'mqtt://192.168.1.85:1883/'
+# broker = '172.20.10.4'=
+CLIENT_IP = f'mqtt://{broker_ip}:1883/'
 
 async def startBroker():
     await broker.start()

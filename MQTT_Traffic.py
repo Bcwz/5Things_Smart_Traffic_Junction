@@ -21,7 +21,7 @@ DISABLE_DIRECTION_TRAFFIC = 2
 topic = [("5Things/traffic_change",2), ("5Things/traffic_condition",2), ("5Things/start_stop",2), ("5Things/set_traffic", 2)]
 
 # Set your client id
-# client_id = "east"
+# client_id = "west"
 client_id = "north"
 # traffic_lookout = ["west", "east"]
 traffic_lookout = ["north", "south"]
@@ -92,7 +92,7 @@ def check_traffic_condition(status):
 
     printTransition("Traffic Detected Changed!")
     if status["direction"] in traffic_lookout:
-        if trafficStatus.status is True:
+        if trafficStatus.status is True:3
             sTraffic.setSmartTraffic(ENABLE_DIRECTION_TRAFFIC)
         else:
             traffic_enabled.timer.cancel()
@@ -263,4 +263,4 @@ if __name__ == "__main__":
         
     except KeyboardInterrupt:
         # traffic_light.clearall()
-        timer.cancel()
+        traffic_enabled.timer.cancel()
