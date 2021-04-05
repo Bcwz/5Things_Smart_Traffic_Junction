@@ -54,6 +54,7 @@ async def brokerGetMessage():
         for i in range(1,100):
             message = await C.deliver_message()
             packet = message.publish_packet
+            print("%d:  %s => %s" % (i, packet.variable_header.topic_name, str(packet.payload.data)))
             print(packet.payload.data.decode('utf-8'))
     except ClientException as ce:
         logger.error("Client exception : %s" % ce)
