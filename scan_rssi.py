@@ -14,6 +14,19 @@ import bluetooth
 #BLUETOOTH_MAC = "F8:10:93:A2:34:99"
 BLUETOOTH_MAC = "B8:27:EB:43:A5:86"
 
+
+count = 0
+file = 'rssi'
+file_name = f"{file}_{count}.csv"
+if os.path.isfile(file_name):
+    while os.path.isfile(file_name):
+        if not os.path.isfile(file_name):
+            break
+        
+        count = count + 1
+        file_name = f"{file}_{count}.csv"
+
+
 def printpacket(pkt):
     for c in pkt:
         sys.stdout.write("%02x " % struct.unpack("B",c)[0])
@@ -108,8 +121,13 @@ def device_inquiry_with_with_rssi(sock):
                 if(addr == BLUETOOTH_MAC):
                     rssi = bluetooth.byte_to_signed_int(
                         bluetooth.get_byte(pkt[1+13*nrsp+i]))
-                    results.append( ( addr, rssi ) )
+                    # results.append( ( addr, rssi ) )
+                    results.append( { "addr": addr, "rssi": rssi } )
+                    
+                    
                     print("[%s] RSSI: [%d]" % (addr, rssi))
+                    
+                    
         elif event == bluez.EVT_INQUIRY_COMPLETE:
             done = True
         elif event == bluez.EVT_CMD_STATUS:
@@ -123,7 +141,8 @@ def device_inquiry_with_with_rssi(sock):
             nrsp = bluetooth.get_byte(pkt[0])
             for i in range(nrsp):
                 addr = bluez.ba2str( pkt[1+6*i:1+6*i+6] )
-                results.append( ( addr, -1 ) )
+                # results.append( ( addr, -1 ) )
+                results.append( { "addr": addr, "rssi": "-1" } )
                 print("[%s] (no RRSI)" % addr)
         else:
             print("unrecognized packet type 0x%02x" % ptype)
@@ -164,4 +183,10 @@ if mode != 1:
     print("result: %d" % result)
 
 while True:
-    device_inquiry_with_with_rssi(sock)
+    
+    with open(file_name, mode='a+') as latency_file:
+        result = device_inquiry_with_with_rssi(sock)
+        
+        latency_writer = csv.writer(latency_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        latency_writer.writerow([datetime.now(), result])
+    
