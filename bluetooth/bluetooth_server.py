@@ -10,6 +10,7 @@ def data_received(data):
     current_time = datetime.strptime(now,"%H:%M:%S.%f")
     # Convert the payload time to a datetime object
     payload_time = datetime.strptime(data[0:12], '%H:%M:%S.%f')
+    print(len(data.encode("utf-8")))
     latency=current_time-payload_time
     
     print("Data from client: ", data,"\nLatency: ",latency)
