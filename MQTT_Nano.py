@@ -3,6 +3,7 @@ from paho.mqtt import client as mqtt_client
 import json
 from datetime import date
 import datetime
+import sys
 
 broker = '172.20.10.10'
 port = 1883
@@ -41,6 +42,8 @@ def publish(client, message, topic):
     
     # Publis the message
     result = client.publish(topic, msg, 2)
+    
+    result = client.publish(topic, msg, 2)
  
     
     print(f"Send `{msg}` to topic `{topic}`")
@@ -63,7 +66,9 @@ def subscribe(client: mqtt_client):
         else:
             setTopic = topic[3][0]
             
-            
+        # To get the payload size    
+        print(len(payload.encode("utf-8")))
+        
         publish(client, payload, setTopic)
         
     client.subscribe([topic[0],topic[2]])

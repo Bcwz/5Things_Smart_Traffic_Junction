@@ -10,7 +10,7 @@ from paho.mqtt import client as mqtt_client
 import json
 import datetime
 
-broker = '172.20.10.6'
+broker = '172.20.10.10'
 port = 1883
 
 FLAG_SMART_TRAFFIC = 0
@@ -223,6 +223,7 @@ def subscribe(client: mqtt_client):
         if msg.topic == topic[3][0]: # 5Things/start_traffic
             m_in=string_to_json(m_decode) #decode json data
             
+            
             if m_in["enabled"]:
                 start_traffic(m_in)
                 print("Traffic Start")
@@ -264,3 +265,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         # traffic_light.clearall()
         traffic_enabled.timer.cancel()
+gstr
